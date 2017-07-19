@@ -10,22 +10,25 @@ const client = new pg.Client({
   ssl      : settings.ssl
 });
 
+let input = process.argv.slice(2);
+
 client.connect((err) => {
   if (err) {
     return console.error("Connection Error", err);
   }
+
   console.log("Searching.......");
 
-  let name = process.argv.slice(2);
-  let query = `SELECT * FROM famous_people WHERE last_name=name OR first_name=input`;
+  let sql = "SELECT * FROM famous_people WHERE last_name=$1::text OR first_name=$1::text";
 
-  client.query(query, ["input"], err, result) => {
+  client.query(sql, input, (err, result) => {
     if (err) {
       return console.error("error running query", err);
     }
-    console.log(result.rows[0].number);
-    // console.log("Found ", X "person(s) by the name ", name, ":");
-    return result
+
+    console.log(`Found ${result.rows.length} person(s) by the name '${input}':`);
+    console.log(`-${result.rows[0].id}: ${result.rows[0].first_name} ${result.rows[0].last_name}, born ${result.rows[0].birthdate}`);
+
     client.end();
   });
 });
